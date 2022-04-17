@@ -92,6 +92,12 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Сalculator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Сalculator.Designer.cs">
+      <DependentUpon>Сalculator.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="main.resx">
       <DependentUpon>main.cs</DependentUpon>
     </EmbeddedResource>
@@ -103,7 +109,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Сalculator.resx">
+      <DependentUpon>Сalculator.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -117,6 +127,30 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\стереть.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\стереть1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Без имени-1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\степень.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\степень3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\степень2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\степень21.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\степень3_1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
