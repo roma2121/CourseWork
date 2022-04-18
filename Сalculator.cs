@@ -9,6 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using ZedGraph;
+using AngouriMath;
+
 namespace coursework
 {
     public partial class Сalculator : Form
@@ -16,6 +19,15 @@ namespace coursework
         public Сalculator()
         {
             InitializeComponent();
+            timer1.Enabled = true;
+            zedGraphControl1.IsShowPointValues = true;
+            zedGraphControl1.PointValueEvent += new ZedGraphControl.PointValueHandler(zedGraph_PointValueEvent);
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            timer1.Interval = 1000;
+            toolStripStatusLabel1.Text = DateTime.Now.ToString("dd MMMM yyyy HH:mm:ss dddd");
         }
 
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
@@ -116,7 +128,10 @@ namespace coursework
         {
             indexText++;
             Button B = (Button)sender;
-            equationText.Add("(x)");
+            if (equationText[indexText - 1] == "(")
+                equationText.Add("x");
+            else
+                equationText.Add("(x)");
 
             adding_equation_text();
         }
@@ -164,6 +179,88 @@ namespace coursework
             equationText.Add("^");
 
             adding_equation_text();
+        }
+
+        private void CheckingEquation()
+        {
+            try
+            {
+                Entity expr = equation_textBox.Text;
+
+                double Xmin = 0, Xmax = 0, Step = 0;
+                Xmin = double.Parse(minBorder.Text);
+                Xmax = double.Parse(maxBorder.Text);
+                var numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
+
+                int i = 0;
+                double[,] arrayPoints = new double[numberPoints, 2];
+                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i);
+
+                painting(ref arrayPoints, ref numberPoints, ref expr);
+
+                expr = Convert.ToString(expr.Differentiate("x"));
+
+                textBox1.Text = "f '(x) = " + Convert.ToString(expr);
+                textBox1.Text += Environment.NewLine + Convert.ToString(expr) + " = 0";
+                Entity expr2 = $"{expr} = 0";
+                textBox1.Text += Environment.NewLine + Convert.ToString(expr.SolveEquation("x"));
+
+            }
+            catch
+            {
+                equation_textBox.Clear();
+                MessageBox.Show("Уравнение введено неверно!");
+            }
+        }
+        private void calculation_Click(object sender, EventArgs e)
+        {
+            CheckingEquation();
+        }
+
+        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i)
+        {
+            if (i == numberPoints)
+                return;
+            
+            var subs = expr.Substitute("x", Xmin);
+
+            arrayPoints[i, 0] = Math.Round((Xmin), 1);
+            arrayPoints[i, 1] = (double)(subs.EvalNumerical());
+
+            i++;
+            Xmin = Xmin + 0.1;
+
+            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i);
+        }
+
+        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity expr)
+        {
+            GraphPane pane = zedGraphControl1.GraphPane;
+            pane.CurveList.Clear();
+            PointPairList list = new PointPairList();
+            pane.XAxis.Title.Text = "Ось X";
+            pane.YAxis.Title.Text = "Ось Y";
+            pane.Title.Text = "График функции";
+
+            // Добавляем вычисленные значения в графики
+            for (int i = 0; i < numberPoints; i++)
+            {
+                list.Add(arrayPoints[i, 0], arrayPoints[i, 1]);
+            }
+
+            LineItem myCurve = pane.AddCurve($"{expr}", list, Color.Red, SymbolType.None);
+
+            zedGraphControl1.AxisChange();
+            zedGraphControl1.Invalidate();
+        }
+
+        string zedGraph_PointValueEvent(ZedGraphControl sender, GraphPane pane, CurveItem curve, int iPt)
+        {
+            // Получим точку, около которой находимся
+            PointPair point = curve[iPt];
+            // Сформируем строку
+            string result = string.Format("X: {0:F3}\nY: {1:F3}", point.X, point.Y);
+            return result;
         }
     }
 }
