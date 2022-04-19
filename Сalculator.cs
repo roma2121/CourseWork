@@ -11,6 +11,7 @@ using System.Windows.Forms;
 
 using ZedGraph;
 using AngouriMath;
+using System.Text.RegularExpressions;
 
 namespace coursework
 {
@@ -22,6 +23,15 @@ namespace coursework
             timer1.Enabled = true;
             zedGraphControl1.IsShowPointValues = true;
             zedGraphControl1.PointValueEvent += new ZedGraphControl.PointValueHandler(zedGraph_PointValueEvent);
+        }
+
+        string zedGraph_PointValueEvent(ZedGraphControl sender, GraphPane pane, CurveItem curve, int iPt)
+        {
+            // Получим точку, около которой находимся
+            PointPair point = curve[iPt];
+            // Сформируем строку
+            string result = string.Format("X: {0:F3}\nY: {1:F3}", point.X, point.Y);
+            return result;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -38,6 +48,7 @@ namespace coursework
             try
             {
                 equation_textBox.Text = File.ReadLines(filename).Skip(0).First();
+                equationText.Add(equation_textBox.Text);
                 minBorder.Text = File.ReadLines(filename).Skip(1).First();
                 maxBorder.Text = File.ReadLines(filename).Skip(2).First();
 
@@ -97,8 +108,8 @@ namespace coursework
         {
             if (equationText.Count > 0)
             {
-                equationText.Remove(equationText.Last());
                 indexText--;
+                equationText.Remove(equationText.Last());
                 adding_equation_text();
             }
         }
@@ -128,7 +139,7 @@ namespace coursework
         {
             indexText++;
             Button B = (Button)sender;
-            if (equationText[indexText - 1] == "(")
+            if (equationText.Count != 0 && equationText[indexText - 1] == "(")
                 equationText.Add("x");
             else
                 equationText.Add("(x)");
@@ -181,22 +192,43 @@ namespace coursework
             adding_equation_text();
         }
 
+        private void ReadingBoundaries(ref double Xmin, ref double Xmax)
+        {
+            Xmin = double.Parse(minBorder.Text);
+            Xmax = double.Parse(maxBorder.Text);
+            if (Xmin + Xmax > 2000)
+            {
+                minBorder.Text = null;
+                maxBorder.Text = null;
+                throw new Exception("Диапазон значений слишком велик!");
+            }
+        }
+
+        private void ReadingEquation(out Entity expr)
+        {
+            expr = equation_textBox.Text;
+        }
+
         private void CheckingEquation()
         {
             try
             {
-                Entity expr = equation_textBox.Text;
-
+                Entity expr;
                 double Xmin = 0, Xmax = 0, Step = 0;
-                Xmin = double.Parse(minBorder.Text);
-                Xmax = double.Parse(maxBorder.Text);
-                var numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
 
-                int i = 0;
+                ReadingBoundaries(ref Xmin, ref Xmax);
+                ReadingEquation(out expr);
+
+                Entity equationY = expr;
+
+
+
+                var numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.5) + 1;
+
+                int countPoints = 0;
                 double[,] arrayPoints = new double[numberPoints, 2];
-                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i);
+                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, countPoints);
 
-                painting(ref arrayPoints, ref numberPoints, ref expr);
 
                 expr = Convert.ToString(expr.Differentiate("x"));
 
@@ -205,13 +237,45 @@ namespace coursework
                 Entity expr2 = $"{expr} = 0";
                 textBox1.Text += Environment.NewLine + Convert.ToString(expr.SolveEquation("x"));
 
+
+
+                //отбор корней начало 
+                string test1 = Convert.ToString(expr.SolveEquation("x"));
+                string[] subs = test1.Split(',');
+                for (int i = 0; i < subs.Length; i++)
+                {
+
+                    subs[i] = subs[i].Replace("{ ", "");
+                    subs[i] = subs[i].Replace(" }", "");
+                }
+                //отбор корней
+                double[,] arrayRoot = new double[subs.Length, 2];
+                int j = 0;
+                for (int i = 0; i < subs.Length; i++)
+                {
+                    Entity firstRoot = subs[i];
+                    double x = (double)(firstRoot.EvalNumerical());
+                    double y;
+                    if (x >= Xmin && x <= Xmax)
+                    {
+                        y = (double)(equationY.Substitute("x", x)).EvalNumerical();
+
+                        arrayRoot[j , 0] = x;
+                        arrayRoot[j , 1] = y;
+
+                        j++;
+                    }
+                }
+
+                painting(ref arrayPoints, ref numberPoints, ref expr, ref arrayRoot);
             }
             catch
-            {
+            { 
                 equation_textBox.Clear();
                 MessageBox.Show("Уравнение введено неверно!");
             }
         }
+
         private void calculation_Click(object sender, EventArgs e)
         {
             CheckingEquation();
@@ -228,16 +292,17 @@ namespace coursework
             arrayPoints[i, 1] = (double)(subs.EvalNumerical());
 
             i++;
-            Xmin = Xmin + 0.1;
+            Xmin = Xmin + 0.5;
 
             CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i);
         }
 
-        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity expr)
+        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity expr, ref double[,] arrayRoot)
         {
             GraphPane pane = zedGraphControl1.GraphPane;
             pane.CurveList.Clear();
-            PointPairList list = new PointPairList();
+            PointPairList list1 = new PointPairList();
+            PointPairList list2 = new PointPairList();
             pane.XAxis.Title.Text = "Ось X";
             pane.YAxis.Title.Text = "Ось Y";
             pane.Title.Text = "График функции";
@@ -245,22 +310,20 @@ namespace coursework
             // Добавляем вычисленные значения в графики
             for (int i = 0; i < numberPoints; i++)
             {
-                list.Add(arrayPoints[i, 0], arrayPoints[i, 1]);
+                list1.Add(arrayPoints[i, 0], arrayPoints[i, 1]);
             }
-
-            LineItem myCurve = pane.AddCurve($"{expr}", list, Color.Red, SymbolType.None);
-
+            //добавляем корни на график
+            for (int i = 0; i < arrayRoot.Length / 2; i++)
+            {
+                list2.Add(arrayRoot[i, 0], arrayRoot[i, 1]);
+            }
+            LineItem myCurve1 = pane.AddCurve($"{expr}", list1, Color.Red, SymbolType.None);
+            LineItem myCurve2 = pane.AddCurve("", list2, Color.Blue, SymbolType.Circle);
+            myCurve2.Symbol.Fill.Type = FillType.Solid;
+            myCurve2.Symbol.Size = 4;
+            myCurve2.Line.IsVisible = false;
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
-        }
-
-        string zedGraph_PointValueEvent(ZedGraphControl sender, GraphPane pane, CurveItem curve, int iPt)
-        {
-            // Получим точку, около которой находимся
-            PointPair point = curve[iPt];
-            // Сформируем строку
-            string result = string.Format("X: {0:F3}\nY: {1:F3}", point.X, point.Y);
-            return result;
         }
     }
 }
