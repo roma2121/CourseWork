@@ -11,7 +11,6 @@ using System.Windows.Forms;
 
 using ZedGraph;
 using AngouriMath;
-using System.Text.RegularExpressions;
 
 namespace coursework
 {
@@ -91,7 +90,7 @@ namespace coursework
             maxBorder.Clear();
 
             equationText.Clear();
-            indexText = 0;
+            indexText = -1;
         }
 
         private void adding_equation_text()
@@ -109,7 +108,7 @@ namespace coursework
             if (equationText.Count > 0)
             {
                 indexText--;
-                equationText.Remove(equationText.Last());
+                equationText.RemoveAt(equationText.Count - 1);
                 adding_equation_text();
             }
         }
@@ -137,13 +136,12 @@ namespace coursework
 
         private void x_Click(object sender, EventArgs e)
         {
-            indexText++;
             Button B = (Button)sender;
-            if (equationText.Count != 0 && equationText[indexText - 1] == "(")
+            if (equationText.Count != 0 && equationText[indexText] == "(")
                 equationText.Add("x");
             else
                 equationText.Add("(x)");
-
+            indexText++;
             adding_equation_text();
         }
 
@@ -192,15 +190,31 @@ namespace coursework
             adding_equation_text();
         }
 
-        private void ReadingBoundaries(ref double Xmin, ref double Xmax)
+        private void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)
         {
             Xmin = double.Parse(minBorder.Text);
             Xmax = double.Parse(maxBorder.Text);
-            if (Xmin + Xmax > 2000)
+            if (Math.Abs(Xmin) + Xmax > 2000)
             {
                 minBorder.Text = null;
                 maxBorder.Text = null;
                 throw new Exception("Диапазон значений слишком велик!");
+            }
+
+            if (Math.Abs(Xmin) + Xmax <= 200)
+            {
+                accuracy = 0.1f;
+                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
+            }
+            else if (Math.Abs(Xmin) + Xmax <= 1000)
+            {
+                accuracy = 0.5f;
+                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.5) + 1;
+            }
+            else
+            {
+                accuracy = 1f;
+                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 1) + 1;
             }
         }
 
@@ -209,70 +223,134 @@ namespace coursework
             expr = equation_textBox.Text;
         }
 
+        private void RootSelection(ref double Xmin, ref double Xmax, ref Entity expr, ref Entity equationY, ref List<double> arrayRoot)
+        {
+            //отбор корней начало
+            //
+            string[] roots = Convert.ToString(expr.SolveEquation("x")).Split(',');
+
+            int newCountRoots = (int)(((Math.Abs(Xmin) + Xmax) + 1) / 6.29);
+
+            string top = Convert.ToString((expr.SolveEquation("x")));
+
+
+            sbyte fun = 0;
+            if (top.Contains("2 * pi * n_1"))
+            {
+                fun = -1;
+            }
+            else
+            {
+                fun = 1;
+            }
+            
+            if (top.Contains("n_1"))
+            {
+                Array.Resize(ref roots, roots.Length * (newCountRoots + 2));
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    roots[i] = roots[i % 2];
+                    roots[i] = roots[i].Replace("{ ", "");
+                    roots[i] = roots[i].Replace(" }", "");
+                    roots[i] = roots[i].Replace("\\/", "");
+                }
+
+                int pi = 0;
+                int g = - 1;
+
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    if (pi % 2 == 0)
+                    {
+                        g++;
+                    }
+
+                    int num = (int)Math.Abs(Xmin / 6.26);
+
+                    roots[i] = roots[i].Replace("n_1", $"(-{num}+{g}+({fun}))");
+                    pi++;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    roots[i] = roots[i].Replace("{ ", "");
+                    roots[i] = roots[i].Replace(" }", "");
+                    roots[i] = roots[i].Replace("\\/", "");
+                }
+            }
+
+            //отбор корней
+            int j = 0;
+            for (int i = 0; i < roots.Length; i++)
+            {
+                Entity firstRoot = roots[i];
+                double x = (double)(firstRoot.EvalNumerical());
+                double y;
+                if (x >= Xmin && x <= Xmax)
+                {
+                    y = (double)(equationY.Substitute("x", x)).EvalNumerical();
+
+                    arrayRoot.Add(x);
+                    arrayRoot.Add(y);
+
+                    j++;
+                }
+                if (j == 0)
+                {
+                    arrayRoot.Clear();
+                }
+            }
+        }
+
+        private void PrintProgressSolution(Entity expr)
+        {
+            textBox1.Text = "f '(x) = " + Convert.ToString(expr);
+            textBox1.Text += Environment.NewLine + Convert.ToString(expr) + " = 0";
+            textBox1.Text += Environment.NewLine + Convert.ToString(expr.SolveEquation("x"));
+        }
+
         private void CheckingEquation()
         {
             try
             {
                 Entity expr;
-                double Xmin = 0, Xmax = 0, Step = 0;
+                double Xmin, Xmax;
+                int numberPoints;
+                float accuracy;
 
-                ReadingBoundaries(ref Xmin, ref Xmax);
+                ReadingBoundaries(out Xmin, out Xmax, out numberPoints, out accuracy);
                 ReadingEquation(out expr);
 
                 Entity equationY = expr;
 
-
-
-                var numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.5) + 1;
-
                 int countPoints = 0;
                 double[,] arrayPoints = new double[numberPoints, 2];
-                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, countPoints);
 
+                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, countPoints, ref accuracy);
 
                 expr = Convert.ToString(expr.Differentiate("x"));
+                PrintProgressSolution(expr);
 
-                textBox1.Text = "f '(x) = " + Convert.ToString(expr);
-                textBox1.Text += Environment.NewLine + Convert.ToString(expr) + " = 0";
-                Entity expr2 = $"{expr} = 0";
-                textBox1.Text += Environment.NewLine + Convert.ToString(expr.SolveEquation("x"));
+                List<double> arrayRoot = new List<double>();
+                RootSelection(ref Xmin, ref Xmax, ref expr, ref equationY, ref arrayRoot);
 
-
-
-                //отбор корней начало 
-                string test1 = Convert.ToString(expr.SolveEquation("x"));
-                string[] subs = test1.Split(',');
-                for (int i = 0; i < subs.Length; i++)
-                {
-
-                    subs[i] = subs[i].Replace("{ ", "");
-                    subs[i] = subs[i].Replace(" }", "");
-                }
-                //отбор корней
-                double[,] arrayRoot = new double[subs.Length, 2];
-                int j = 0;
-                for (int i = 0; i < subs.Length; i++)
-                {
-                    Entity firstRoot = subs[i];
-                    double x = (double)(firstRoot.EvalNumerical());
-                    double y;
-                    if (x >= Xmin && x <= Xmax)
-                    {
-                        y = (double)(equationY.Substitute("x", x)).EvalNumerical();
-
-                        arrayRoot[j , 0] = x;
-                        arrayRoot[j , 1] = y;
-
-                        j++;
-                    }
-                }
-
-                painting(ref arrayPoints, ref numberPoints, ref expr, ref arrayRoot);
+                painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
             }
-            catch
+            catch (Exception ex)
             { 
-                equation_textBox.Clear();
-                MessageBox.Show("Уравнение введено неверно!");
+                if (ex.Message == "Диапазон значений слишком велик!")
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                else
+                {
+                    MessageBox.Show("Уравнение введено неверно!");
+                    equation_textBox.Clear();
+                    equationText.Clear();
+                    indexText = -1;
+                }
             }
         }
 
@@ -281,23 +359,23 @@ namespace coursework
             CheckingEquation();
         }
 
-        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i)
+        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i, ref float accuracy)
         {
             if (i == numberPoints)
                 return;
             
             var subs = expr.Substitute("x", Xmin);
 
-            arrayPoints[i, 0] = Math.Round((Xmin), 1);
+            arrayPoints[i, 0] = Xmin;
             arrayPoints[i, 1] = (double)(subs.EvalNumerical());
 
             i++;
-            Xmin = Xmin + 0.5;
+            Xmin = Math.Round((Xmin + accuracy), 1);
 
-            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i);
+            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i, ref accuracy);
         }
 
-        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity expr, ref double[,] arrayRoot)
+        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity equationY, ref List<double> arrayRoot)
         {
             GraphPane pane = zedGraphControl1.GraphPane;
             pane.CurveList.Clear();
@@ -313,11 +391,11 @@ namespace coursework
                 list1.Add(arrayPoints[i, 0], arrayPoints[i, 1]);
             }
             //добавляем корни на график
-            for (int i = 0; i < arrayRoot.Length / 2; i++)
+            for (int i = 0; i < arrayRoot.Count; i += 2)
             {
-                list2.Add(arrayRoot[i, 0], arrayRoot[i, 1]);
+                list2.Add(arrayRoot[i], arrayRoot[i + 1]);
             }
-            LineItem myCurve1 = pane.AddCurve($"{expr}", list1, Color.Red, SymbolType.None);
+            LineItem myCurve1 = pane.AddCurve($"{equationY}", list1, Color.Red, SymbolType.None);
             LineItem myCurve2 = pane.AddCurve("", list2, Color.Blue, SymbolType.Circle);
             myCurve2.Symbol.Fill.Type = FillType.Solid;
             myCurve2.Symbol.Size = 4;
