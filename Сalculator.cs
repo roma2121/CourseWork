@@ -192,8 +192,17 @@ namespace coursework
 
         private void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)
         {
-            Xmin = double.Parse(minBorder.Text.Replace(".", ","));
-            Xmax = double.Parse(maxBorder.Text.Replace(".", ","));
+            if (!double.TryParse(minBorder.Text.Replace(".", ","), out  Xmin))
+            {
+                minBorder.Focus();
+                throw new Exception("Левая граница введена неверно!");
+            }
+
+            if (!double.TryParse(maxBorder.Text.Replace(".", ","), out Xmax))
+            {
+                maxBorder.Focus();
+                throw new Exception("Правая граница введена неверно!");
+            }
 
             if (Math.Abs(Xmin) + Xmax > 2000)
             {
@@ -311,7 +320,7 @@ namespace coursework
             textBox1.Text += Environment.NewLine + Convert.ToString(expr.SolveEquation("x"));
         }
 
-        private void CheckingEquation()
+        async private void CheckingEquation()
         {
             try
             {
@@ -328,29 +337,44 @@ namespace coursework
                 int countPoints = 0;
                 double[,] arrayPoints = new double[numberPoints, 2];
 
-                CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, countPoints, ref accuracy);
-
                 expr = Convert.ToString(expr.Differentiate("x"));
+                var subs = (expr.Substitute("x", Xmin)).EvalNumerical();
+                //var test = (subs.EvalNumerical());
+
+
+
+                toolStripProgressBar1.Maximum = numberPoints;
+                toolStripProgressBar1.Value = 0;
+                var progress = new Progress<int>(percent =>
+                {
+                    toolStripProgressBar1.Value = percent;
+                });
+
+                await Task.Run(() => CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref equationY, ref arrayPoints, countPoints, ref accuracy, progress) );
+
                 PrintProgressSolution(expr);
 
                 List<double> arrayRoot = new List<double>();
-                RootSelection(ref Xmin, ref Xmax, ref expr, ref equationY, ref arrayRoot);
+                await Task.Run(() => RootSelection(ref Xmin, ref Xmax, ref expr, ref equationY, ref arrayRoot) );
 
                 painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
+
+                toolStripProgressBar1.Value = 0;
             }
             catch (Exception ex)
             { 
-                if (ex.Message == "Диапазон значений слишком велик!")
-                {
-                    MessageBox.Show(ex.Message);
-                }
-                else
+                if (ex.Message != "Левая граница введена неверно!" && ex.Message != "Правая граница введена неверно!" && ex.Message != "Диапазон значений слишком велик!")
                 {
                     MessageBox.Show("Уравнение введено неверно!");
                     equation_textBox.Clear();
                     equationText.Clear();
                     indexText = -1;
                 }
+                else
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                toolStripProgressBar1.Value = 0;
             }
         }
 
@@ -359,20 +383,23 @@ namespace coursework
             CheckingEquation();
         }
 
-        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i, ref float accuracy)
+        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i, ref float accuracy, IProgress<int> progress)
         {
             if (i == numberPoints)
                 return;
             
             var subs = expr.Substitute("x", Xmin);
-
+            
             arrayPoints[i, 0] = Xmin;
             arrayPoints[i, 1] = (double)(subs.EvalNumerical());
-
+            
             i++;
             Xmin = Math.Round((Xmin + accuracy), 1);
-
-            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i, ref accuracy);
+            
+            if (progress != null)
+                progress.Report(i);
+            
+            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i, ref accuracy, progress);
         }
 
         public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity equationY, ref List<double> arrayRoot)
