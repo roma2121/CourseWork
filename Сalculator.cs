@@ -192,8 +192,9 @@ namespace coursework
 
         private void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)
         {
-            Xmin = double.Parse(minBorder.Text);
-            Xmax = double.Parse(maxBorder.Text);
+            Xmin = double.Parse(minBorder.Text.Replace(".", ","));
+            Xmax = double.Parse(maxBorder.Text.Replace(".", ","));
+
             if (Math.Abs(Xmin) + Xmax > 2000)
             {
                 minBorder.Text = null;
@@ -226,7 +227,6 @@ namespace coursework
         private void RootSelection(ref double Xmin, ref double Xmax, ref Entity expr, ref Entity equationY, ref List<double> arrayRoot)
         {
             //отбор корней начало
-            //
             string[] roots = Convert.ToString(expr.SolveEquation("x")).Split(',');
 
             int newCountRoots = (int)(((Math.Abs(Xmin) + Xmax) + 1) / 6.29);
@@ -400,6 +400,11 @@ namespace coursework
             myCurve2.Symbol.Fill.Type = FillType.Solid;
             myCurve2.Symbol.Size = 4;
             myCurve2.Line.IsVisible = false;
+
+            zedGraphControl1.IsShowHScrollBar = true;
+            zedGraphControl1.IsShowVScrollBar = true;
+            zedGraphControl1.IsAutoScrollRange = true;
+
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
         }
