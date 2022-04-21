@@ -289,27 +289,33 @@ namespace coursework
                     roots[i] = roots[i].Replace("\\/", "");
                 }
             }
-
-            //отбор корней
-            int j = 0;
-            for (int i = 0; i < roots.Length; i++)
+            try
             {
-                Entity firstRoot = roots[i];
-                double x = (double)(firstRoot.EvalNumerical());
-                double y;
-                if (x >= Xmin && x <= Xmax)
+                //отбор корней
+                int j = 0;
+                for (int i = 0; i < roots.Length; i++)
                 {
-                    y = (double)(equationY.Substitute("x", x)).EvalNumerical();
+                    Entity firstRoot = roots[i];
+                    double x = (double)(firstRoot.EvalNumerical());
+                    double y;
+                    if (x >= Xmin && x <= Xmax)
+                    {
+                        y = (double)(equationY.Substitute("x", x)).EvalNumerical();
 
-                    arrayRoot.Add(x);
-                    arrayRoot.Add(y);
+                        arrayRoot.Add(x);
+                        arrayRoot.Add(y);
 
-                    j++;
+                        j++;
+                    }
+                    if (j == 0)
+                    {
+                        arrayRoot.Clear();
+                    }
                 }
-                if (j == 0)
-                {
-                    arrayRoot.Clear();
-                }
+            }
+            catch
+            {
+                MessageBox.Show("Вычислить значения корней урвнения невозможно!");
             }
         }
 
@@ -360,6 +366,8 @@ namespace coursework
                 painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
 
                 toolStripProgressBar1.Value = 0;
+
+                GC.Collect();
             }
             catch (Exception ex)
             { 
