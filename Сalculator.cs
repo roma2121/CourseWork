@@ -204,19 +204,26 @@ namespace coursework
                 throw new Exception("Правая граница введена неверно!");
             }
 
-            if (Math.Abs(Xmin) + Xmax > 2000)
+            if (Xmin > Xmax)
+            {
+                minBorder.Text = null;
+                minBorder.Focus();
+                throw new Exception("Левая граница больше правой!");
+            }
+
+            if (Math.Abs(Xmin) + Math.Abs(Xmax) > 2000)
             {
                 minBorder.Text = null;
                 maxBorder.Text = null;
                 throw new Exception("Диапазон значений слишком велик!");
             }
 
-            if (Math.Abs(Xmin) + Xmax <= 200)
+            if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 200)
             {
                 accuracy = 0.1f;
                 numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
             }
-            else if (Math.Abs(Xmin) + Xmax <= 1000)
+            else if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 1000)
             {
                 accuracy = 0.5f;
                 numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.5) + 1;
@@ -242,6 +249,15 @@ namespace coursework
 
             string top = Convert.ToString((expr.SolveEquation("x")));
 
+            int coefficient = 0;
+            for (int i = 0; i <= 10; i++)
+            {
+                if (top.Contains($"{i}"))
+                {
+                    coefficient = i;
+                }
+            }
+
 
             sbyte fun = 0;
             if (top.Contains("2 * pi * n_1"))
@@ -255,13 +271,21 @@ namespace coursework
             
             if (top.Contains("n_1"))
             {
-                Array.Resize(ref roots, roots.Length * (newCountRoots + 2));
+                byte parity = 2;
+                if (roots.Length == 1)
+                {
+                    parity = 1;
+                    fun = 0;
+                }
+                
+                Array.Resize(ref roots, roots.Length * (newCountRoots + 2) * coefficient);
                 for (int i = 0; i < roots.Length; i++)
                 {
-                    roots[i] = roots[i % 2];
+                    roots[i] = roots[i % parity];
                     roots[i] = roots[i].Replace("{ ", "");
                     roots[i] = roots[i].Replace(" }", "");
                     roots[i] = roots[i].Replace("\\/", "");
+                    roots[i] = roots[i].Replace("\\ ", "");
                 }
 
                 int pi = 0;
@@ -269,14 +293,14 @@ namespace coursework
 
                 for (int i = 0; i < roots.Length; i++)
                 {
-                    if (pi % 2 == 0)
+                    if (pi % parity == 0)
                     {
                         g++;
                     }
 
                     int num = (int)Math.Abs(Xmin / 6.26);
 
-                    roots[i] = roots[i].Replace("n_1", $"(-{num}+{g}+({fun}))");
+                    roots[i] = roots[i].Replace("n_1", $"(-{num}+{g}+({fun})-(2*{coefficient}))");
                     pi++;
                 }
             }
@@ -345,9 +369,6 @@ namespace coursework
 
                 expr = Convert.ToString(expr.Differentiate("x"));
                 var subs = (expr.Substitute("x", Xmin)).EvalNumerical();
-                //var test = (subs.EvalNumerical());
-
-
 
                 toolStripProgressBar1.Maximum = numberPoints;
                 toolStripProgressBar1.Value = 0;
@@ -371,7 +392,7 @@ namespace coursework
             }
             catch (Exception ex)
             { 
-                if (ex.Message != "Левая граница введена неверно!" && ex.Message != "Правая граница введена неверно!" && ex.Message != "Диапазон значений слишком велик!")
+                if (ex.Message != "Левая граница введена неверно!" && ex.Message != "Правая граница введена неверно!" && ex.Message != "Диапазон значений слишком велик!" && ex.Message != "Левая граница больше правой!")
                 {
                     MessageBox.Show("Уравнение введено неверно!");
                     equation_textBox.Clear();
@@ -402,7 +423,7 @@ namespace coursework
             arrayPoints[i, 1] = (double)(subs.EvalNumerical());
             
             i++;
-            Xmin = Math.Round((Xmin + accuracy), 1);
+            Xmin = Math.Round((Xmin + accuracy), 2);
             
             if (progress != null)
                 progress.Report(i);
@@ -430,15 +451,12 @@ namespace coursework
             {
                 list2.Add(arrayRoot[i], arrayRoot[i + 1]);
             }
+
             LineItem myCurve1 = pane.AddCurve($"{equationY}", list1, Color.Red, SymbolType.None);
             LineItem myCurve2 = pane.AddCurve("", list2, Color.Blue, SymbolType.Circle);
             myCurve2.Symbol.Fill.Type = FillType.Solid;
             myCurve2.Symbol.Size = 4;
             myCurve2.Line.IsVisible = false;
-
-            zedGraphControl1.IsShowHScrollBar = true;
-            zedGraphControl1.IsShowVScrollBar = true;
-            zedGraphControl1.IsAutoScrollRange = true;
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
