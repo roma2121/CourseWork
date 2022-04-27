@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 using ZedGraph;
 using AngouriMath;
+
+using System.Diagnostics;
 
 namespace coursework
 {
@@ -23,6 +22,8 @@ namespace coursework
             zedGraphControl1.IsShowPointValues = true;
             zedGraphControl1.PointValueEvent += new ZedGraphControl.PointValueHandler(zedGraph_PointValueEvent);
         }
+
+        Stopwatch sw = new Stopwatch();
 
         string zedGraph_PointValueEvent(ZedGraphControl sender, GraphPane pane, CurveItem curve, int iPt)
         {
@@ -48,6 +49,7 @@ namespace coursework
             {
                 equation_textBox.Text = File.ReadLines(filename).Skip(0).First();
                 equationText.Add(equation_textBox.Text);
+                indexText = 0;
                 minBorder.Text = File.ReadLines(filename).Skip(1).First();
                 maxBorder.Text = File.ReadLines(filename).Skip(2).First();
 
@@ -55,6 +57,7 @@ namespace coursework
             }
             catch
             {
+                clearField_buttom_Click(sender, e);
                 MessageBox.Show("Данные в файле некорректны!");
                 equation_textBox.Clear();
                 minBorder.Clear();
@@ -105,7 +108,7 @@ namespace coursework
 
         private void delete_button_Click(object sender, EventArgs e)
         {
-            if (equationText.Count > 0)
+            if (indexText > -1)
             {
                 indexText--;
                 equationText.RemoveAt(equationText.Count - 1);
@@ -194,12 +197,14 @@ namespace coursework
         {
             if (!double.TryParse(minBorder.Text.Replace(".", ","), out  Xmin))
             {
+                minBorder.Text = null;
                 minBorder.Focus();
                 throw new Exception("Левая граница введена неверно!");
             }
 
             if (!double.TryParse(maxBorder.Text.Replace(".", ","), out Xmax))
             {
+                maxBorder.Text = null;
                 maxBorder.Focus();
                 throw new Exception("Правая граница введена неверно!");
             }
@@ -248,60 +253,69 @@ namespace coursework
             int newCountRoots = (int)(((Math.Abs(Xmin) + Xmax) + 1) / 6.29);
 
             string top = Convert.ToString((expr.SolveEquation("x")));
+            string equat = Convert.ToString(equationY);
 
             int coefficient = 0;
             for (int i = 0; i <= 10; i++)
             {
-                if (top.Contains($"{i}"))
+                if (equat.Contains($"{i}"))
                 {
                     coefficient = i;
                 }
             }
 
+            int quantityEquat = 1;
+            if (coefficient != 0)
+            {
+                quantityEquat = coefficient;
+            }
 
-            sbyte fun = 0;
+            sbyte fun;
+            byte parity;
+
+            parity = 2;
             if (top.Contains("2 * pi * n_1"))
             {
                 fun = -1;
+            }
+            else if (roots.Length == 1)
+            {
+                parity = 1;
+                fun = 0;
             }
             else
             {
                 fun = 1;
             }
-            
+
             if (top.Contains("n_1"))
             {
-                byte parity = 2;
-                if (roots.Length == 1)
+                for(int i = 0; i < 2; i++)
                 {
-                    parity = 1;
-                    fun = 0;
-                }
-                
-                Array.Resize(ref roots, roots.Length * (newCountRoots + 2) * coefficient);
-                for (int i = 0; i < roots.Length; i++)
-                {
-                    roots[i] = roots[i % parity];
                     roots[i] = roots[i].Replace("{ ", "");
                     roots[i] = roots[i].Replace(" }", "");
                     roots[i] = roots[i].Replace("\\/", "");
                     roots[i] = roots[i].Replace("\\ ", "");
                 }
 
-                int pi = 0;
-                int g = - 1;
+                Array.Resize(ref roots, roots.Length * (newCountRoots + 2) * quantityEquat);
 
                 for (int i = 0; i < roots.Length; i++)
                 {
-                    if (pi % parity == 0)
-                    {
-                        g++;
-                    }
+                    roots[i] = roots[i % parity];
+                }
 
-                    int num = (int)Math.Abs(Xmin / 6.26);
+                int g = - 1;
+                int num = (int)Math.Abs(Xmin / 6.26);
+                int k;
 
-                    roots[i] = roots[i].Replace("n_1", $"(-{num}+{g}+({fun})-(2*{coefficient}))");
-                    pi++;
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    g += i % parity;
+
+                    k = -num + g + fun - (2 * coefficient);
+
+                    roots[i] = roots[i].Replace("n_1", $"({k})");
                 }
             }
             else
@@ -316,30 +330,23 @@ namespace coursework
             try
             {
                 //отбор корней
-                int j = 0;
+                double x;
                 for (int i = 0; i < roots.Length; i++)
                 {
                     Entity firstRoot = roots[i];
-                    double x = (double)(firstRoot.EvalNumerical());
-                    double y;
-                    if (x >= Xmin && x <= Xmax)
+                    x = (double)firstRoot.EvalNumerical();
+                    if (x >= Xmin & x <= Xmax)
                     {
-                        y = (double)(equationY.Substitute("x", x)).EvalNumerical();
-
                         arrayRoot.Add(x);
-                        arrayRoot.Add(y);
-
-                        j++;
-                    }
-                    if (j == 0)
-                    {
-                        arrayRoot.Clear();
+                        arrayRoot.Add((double)(equationY.Substitute("x", x)).EvalNumerical());
                     }
                 }
             }
             catch
             {
-                MessageBox.Show("Вычислить значения корней урвнения невозможно!");
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.errorMessage = "Вычислить значения корней урвнения невозможно!";
+                errorMessage.ShowDialog();
             }
         }
 
@@ -354,6 +361,9 @@ namespace coursework
         {
             try
             {
+                equation_comboBox.Items.Add(equation_textBox.Text);
+                equation_comboBox.Update();
+
                 Entity expr;
                 double Xmin, Xmax;
                 int numberPoints;
@@ -363,9 +373,6 @@ namespace coursework
                 ReadingEquation(out expr);
 
                 Entity equationY = expr;
-
-                int countPoints = 0;
-                double[,] arrayPoints = new double[numberPoints, 2];
 
                 expr = Convert.ToString(expr.Differentiate("x"));
                 var subs = (expr.Substitute("x", Xmin)).EvalNumerical();
@@ -377,12 +384,18 @@ namespace coursework
                     toolStripProgressBar1.Value = percent;
                 });
 
-                await Task.Run(() => CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref equationY, ref arrayPoints, countPoints, ref accuracy, progress) );
+                List<double> arrayPoints = new List<double>();
+
+                sw.Restart();
+                sw.Start();
+                await Task.Run(() => CalculationPoint(Xmin, ref numberPoints, ref equationY, ref arrayPoints, ref accuracy, progress) );
 
                 PrintProgressSolution(expr);
 
                 List<double> arrayRoot = new List<double>();
                 await Task.Run(() => RootSelection(ref Xmin, ref Xmax, ref expr, ref equationY, ref arrayRoot) );
+                sw.Stop();
+                textBox2.Text = sw.Elapsed.ToString();
 
                 painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
 
@@ -394,14 +407,19 @@ namespace coursework
             { 
                 if (ex.Message != "Левая граница введена неверно!" && ex.Message != "Правая граница введена неверно!" && ex.Message != "Диапазон значений слишком велик!" && ex.Message != "Левая граница больше правой!")
                 {
-                    MessageBox.Show("Уравнение введено неверно!");
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.errorMessage = "Функция введена неверно!";
+                    errorMessage.ShowDialog();
+
                     equation_textBox.Clear();
                     equationText.Clear();
                     indexText = -1;
                 }
                 else
                 {
-                    MessageBox.Show(ex.Message);
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.errorMessage = ex.Message;
+                    errorMessage.ShowDialog();
                 }
                 toolStripProgressBar1.Value = 0;
             }
@@ -412,26 +430,23 @@ namespace coursework
             CheckingEquation();
         }
 
-        private void CalculationPoint(double Xmin, ref double Xmax, ref int numberPoints, ref Entity expr, ref double[,] arrayPoints, int i, ref float accuracy, IProgress<int> progress)
+        private void CalculationPoint(double Xmin, ref int numberPoints, ref Entity expr, ref List<double> arrayPoints, ref float accuracy, IProgress<int> progress)
         {
-            if (i == numberPoints)
-                return;
-            
-            var subs = expr.Substitute("x", Xmin);
-            
-            arrayPoints[i, 0] = Xmin;
-            arrayPoints[i, 1] = (double)(subs.EvalNumerical());
-            
-            i++;
-            Xmin = Math.Round((Xmin + accuracy), 2);
-            
-            if (progress != null)
-                progress.Report(i);
-            
-            CalculationPoint(Xmin, ref Xmax, ref numberPoints, ref expr, ref arrayPoints, i, ref accuracy, progress);
+            for (int i = 0; i < numberPoints; i++)
+            {
+                var subs = expr.Substitute("x", Xmin);
+
+                arrayPoints.Add(Xmin);
+                arrayPoints.Add((double)(subs.EvalNumerical()));
+
+                Xmin = Math.Round((Xmin + accuracy), 2);
+
+                if (progress != null)
+                    progress.Report(i);
+            }
         }
 
-        public void painting(ref double[,] arrayPoints, ref int numberPoints, ref Entity equationY, ref List<double> arrayRoot)
+        public void painting(ref List<double> arrayPoints, ref int numberPoints, ref Entity equationY, ref List<double> arrayRoot)
         {
             GraphPane pane = zedGraphControl1.GraphPane;
             pane.CurveList.Clear();
@@ -440,16 +455,56 @@ namespace coursework
             pane.XAxis.Title.Text = "Ось X";
             pane.YAxis.Title.Text = "Ось Y";
             pane.Title.Text = "График функции";
-
-            // Добавляем вычисленные значения в графики
-            for (int i = 0; i < numberPoints; i++)
+           
+            string equation = equationY.ToString();
+            if (equation.Contains("cotan"))
             {
-                list1.Add(arrayPoints[i, 0], arrayPoints[i, 1]);
+                list1.Add(arrayPoints[0], arrayPoints[1]);
+                double y = arrayPoints[1];
+                for (int i = 2; i < arrayPoints.Count; i += 2)
+                {
+                    if (y < arrayPoints[i + 1])
+                    {
+                        y = arrayPoints[i + 1];
+                        list1.Add(PointPairBase.Missing, PointPairBase.Missing);
+                    }
+                    else
+                    {
+                        y = arrayPoints[i + 1];
+                        list1.Add(arrayPoints[i], arrayPoints[i + 1]);
+                    }
+                }
             }
-            //добавляем корни на график
-            for (int i = 0; i < arrayRoot.Count; i += 2)
+            else if (equation.Contains("tan"))
             {
-                list2.Add(arrayRoot[i], arrayRoot[i + 1]);
+                list1.Add(arrayPoints[0], arrayPoints[1]);
+                double y = arrayPoints[1];
+                for (int i = 2; i < arrayPoints.Count; i += 2)
+                {
+                    if (y > arrayPoints[i + 1])
+                    {
+                        y = arrayPoints[i + 1];
+                        list1.Add(PointPairBase.Missing, PointPairBase.Missing);
+                    }
+                    else
+                    {
+                        y = arrayPoints[i + 1];
+                        list1.Add(arrayPoints[i], arrayPoints[i + 1]);
+                    }
+                }
+            }
+            else
+            {
+                //Добавляем вычисленные значения в графики
+                for (int i = 0; i < arrayPoints.Count; i += 2)
+                {
+                    list1.Add(arrayPoints[i], arrayPoints[i + 1]);
+                }
+                //добавляем корни на график
+                for (int i = 0; i < arrayRoot.Count; i += 2)
+                {
+                    list2.Add(arrayRoot[i], arrayRoot[i + 1]);
+                }
             }
 
             LineItem myCurve1 = pane.AddCurve($"{equationY}", list1, Color.Red, SymbolType.None);
@@ -460,6 +515,47 @@ namespace coursework
 
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();
+        }
+
+        private void оПрограммеToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            Information informationForm = new Information();
+            informationForm.inf = 101;
+            informationForm.Show();
+        }
+
+        private void авторToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Information informationForm = new Information();
+            informationForm.inf = 202;
+            informationForm.Show();
+        }
+
+        private void закрытьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void clearField_buttom_Click(object sender, EventArgs e)
+        {
+            indexText = -1;
+            minBorder.Clear();
+            maxBorder.Clear();
+            equationText.Clear();
+            equation_textBox.Clear();
+            textBox1.Clear();
+            zedGraphControl1.GraphPane.CurveList.Clear();
+            zedGraphControl1.Invalidate();
+        }
+
+        private void equation_comboBox_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (equation_comboBox.Items.Count != 0)
+            {
+                indexText = -1;
+                equation_textBox.Text = equation_comboBox.SelectedItem.ToString();
+                equationText.Add(equation_textBox.Text);
+            }
         }
     }
 }

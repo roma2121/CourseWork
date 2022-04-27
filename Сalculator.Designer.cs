@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Сalculator));
             this.equation_textBox = new System.Windows.Forms.TextBox();
             this.zedGraphControl1 = new ZedGraph.ZedGraphControl();
             this.clear_button = new System.Windows.Forms.Button();
@@ -70,6 +71,10 @@
             this.открытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.сохранитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.сохранитьГрафикToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.закрытьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.оПрограммеToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.авторToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
@@ -80,13 +85,14 @@
             this.label6 = new System.Windows.Forms.Label();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.button32 = new System.Windows.Forms.Button();
             this.button33 = new System.Windows.Forms.Button();
             this.button34 = new System.Windows.Forms.Button();
             this.delete_button = new System.Windows.Forms.Button();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.оПрограммеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.обАвтореToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.equation_comboBox = new System.Windows.Forms.ComboBox();
+            this.clearField_buttom = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -96,11 +102,11 @@
             this.equation_textBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.equation_textBox.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.equation_textBox.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.equation_textBox.Location = new System.Drawing.Point(12, 27);
+            this.equation_textBox.Location = new System.Drawing.Point(32, 27);
             this.equation_textBox.Multiline = true;
             this.equation_textBox.Name = "equation_textBox";
             this.equation_textBox.ReadOnly = true;
-            this.equation_textBox.Size = new System.Drawing.Size(325, 26);
+            this.equation_textBox.Size = new System.Drawing.Size(305, 26);
             this.equation_textBox.TabIndex = 27;
             // 
             // zedGraphControl1
@@ -514,9 +520,9 @@
             // 
             this.button37.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button37.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button37.Location = new System.Drawing.Point(94, 547);
+            this.button37.Location = new System.Drawing.Point(181, 547);
             this.button37.Name = "button37";
-            this.button37.Size = new System.Drawing.Size(160, 30);
+            this.button37.Size = new System.Drawing.Size(156, 30);
             this.button37.TabIndex = 65;
             this.button37.Text = "Произвести расчеты";
             this.button37.UseVisualStyleBackColor = true;
@@ -538,8 +544,7 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
-            this.оПрограммеToolStripMenuItem,
-            this.обАвтореToolStripMenuItem});
+            this.оПрограммеToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(962, 24);
@@ -551,7 +556,8 @@
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.открытьToolStripMenuItem,
             this.сохранитьToolStripMenuItem,
-            this.сохранитьГрафикToolStripMenuItem});
+            this.сохранитьГрафикToolStripMenuItem,
+            this.закрытьToolStripMenuItem});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.файлToolStripMenuItem.Text = "Файл";
@@ -559,23 +565,57 @@
             // открытьToolStripMenuItem
             // 
             this.открытьToolStripMenuItem.Name = "открытьToolStripMenuItem";
-            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.открытьToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
             this.открытьToolStripMenuItem.Text = "Открыть";
             this.открытьToolStripMenuItem.Click += new System.EventHandler(this.открытьToolStripMenuItem_Click);
             // 
             // сохранитьToolStripMenuItem
             // 
             this.сохранитьToolStripMenuItem.Name = "сохранитьToolStripMenuItem";
-            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.сохранитьToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+            this.сохранитьToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
             this.сохранитьToolStripMenuItem.Text = "Сохранить";
             this.сохранитьToolStripMenuItem.Click += new System.EventHandler(this.сохранитьToolStripMenuItem_Click);
             // 
             // сохранитьГрафикToolStripMenuItem
             // 
             this.сохранитьГрафикToolStripMenuItem.Name = "сохранитьГрафикToolStripMenuItem";
-            this.сохранитьГрафикToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.сохранитьГрафикToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.сохранитьГрафикToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
             this.сохранитьГрафикToolStripMenuItem.Text = "Сохранить график";
             this.сохранитьГрафикToolStripMenuItem.Click += new System.EventHandler(this.сохранитьГрафикToolStripMenuItem_Click);
+            // 
+            // закрытьToolStripMenuItem
+            // 
+            this.закрытьToolStripMenuItem.Name = "закрытьToolStripMenuItem";
+            this.закрытьToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.закрытьToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.закрытьToolStripMenuItem.Text = "Закрыть";
+            this.закрытьToolStripMenuItem.Click += new System.EventHandler(this.закрытьToolStripMenuItem_Click);
+            // 
+            // оПрограммеToolStripMenuItem
+            // 
+            this.оПрограммеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.оПрограммеToolStripMenuItem1,
+            this.авторToolStripMenuItem});
+            this.оПрограммеToolStripMenuItem.Name = "оПрограммеToolStripMenuItem";
+            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(93, 20);
+            this.оПрограммеToolStripMenuItem.Text = "Информация";
+            // 
+            // оПрограммеToolStripMenuItem1
+            // 
+            this.оПрограммеToolStripMenuItem1.Name = "оПрограммеToolStripMenuItem1";
+            this.оПрограммеToolStripMenuItem1.Size = new System.Drawing.Size(149, 22);
+            this.оПрограммеToolStripMenuItem1.Text = "О программе";
+            this.оПрограммеToolStripMenuItem1.Click += new System.EventHandler(this.оПрограммеToolStripMenuItem1_Click);
+            // 
+            // авторToolStripMenuItem
+            // 
+            this.авторToolStripMenuItem.Name = "авторToolStripMenuItem";
+            this.авторToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.авторToolStripMenuItem.Text = "Об авторе";
+            this.авторToolStripMenuItem.Click += new System.EventHandler(this.авторToolStripMenuItem_Click);
             // 
             // statusStrip1
             // 
@@ -657,6 +697,10 @@
             // 
             this.saveFileDialog1.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
             // 
+            // timer1
+            // 
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // button32
             // 
             this.button32.Anchor = System.Windows.Forms.AnchorStyles.Left;
@@ -702,27 +746,47 @@
             this.delete_button.UseVisualStyleBackColor = true;
             this.delete_button.Click += new System.EventHandler(this.delete_button_Click);
             // 
-            // timer1
+            // equation_comboBox
             // 
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.equation_comboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.equation_comboBox.DropDownWidth = 325;
+            this.equation_comboBox.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.equation_comboBox.FormattingEnabled = true;
+            this.equation_comboBox.IntegralHeight = false;
+            this.equation_comboBox.Location = new System.Drawing.Point(12, 27);
+            this.equation_comboBox.Name = "equation_comboBox";
+            this.equation_comboBox.Size = new System.Drawing.Size(17, 27);
+            this.equation_comboBox.TabIndex = 74;
+            this.equation_comboBox.SelectionChangeCommitted += new System.EventHandler(this.equation_comboBox_SelectionChangeCommitted);
             // 
-            // оПрограммеToolStripMenuItem
+            // clearField_buttom
             // 
-            this.оПрограммеToolStripMenuItem.Name = "оПрограммеToolStripMenuItem";
-            this.оПрограммеToolStripMenuItem.Size = new System.Drawing.Size(94, 20);
-            this.оПрограммеToolStripMenuItem.Text = "О программе";
+            this.clearField_buttom.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.clearField_buttom.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.clearField_buttom.Location = new System.Drawing.Point(12, 547);
+            this.clearField_buttom.Name = "clearField_buttom";
+            this.clearField_buttom.Size = new System.Drawing.Size(156, 30);
+            this.clearField_buttom.TabIndex = 75;
+            this.clearField_buttom.Text = "Отчистить поля";
+            this.clearField_buttom.UseVisualStyleBackColor = true;
+            this.clearField_buttom.Click += new System.EventHandler(this.clearField_buttom_Click);
             // 
-            // обАвтореToolStripMenuItem
+            // textBox2
             // 
-            this.обАвтореToolStripMenuItem.Name = "обАвтореToolStripMenuItem";
-            this.обАвтореToolStripMenuItem.Size = new System.Drawing.Size(75, 20);
-            this.обАвтореToolStripMenuItem.Text = "Об авторе";
+            this.textBox2.Location = new System.Drawing.Point(349, 3);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(100, 20);
+            this.textBox2.TabIndex = 76;
             // 
             // Сalculator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(962, 611);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.clearField_buttom);
+            this.Controls.Add(this.equation_comboBox);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.maxBorder);
@@ -770,9 +834,10 @@
             this.Controls.Add(this.zedGraphControl1);
             this.Controls.Add(this.equation_textBox);
             this.Controls.Add(this.menuStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Сalculator";
-            this.Text = "Сalculator";
+            this.Text = "Калькулятор экстремумов";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.statusStrip1.ResumeLayout(false);
@@ -841,6 +906,11 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         private System.Windows.Forms.ToolStripMenuItem оПрограммеToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem обАвтореToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem оПрограммеToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem авторToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem закрытьToolStripMenuItem;
+        private System.Windows.Forms.ComboBox equation_comboBox;
+        private System.Windows.Forms.Button clearField_buttom;
+        private System.Windows.Forms.TextBox textBox2;
     }
 }
