@@ -5,6 +5,14 @@ namespace coursework
 {
     internal static class Program
     {
+        public static Сalculator Сalculator
+        {
+            get => default;
+            set
+            {
+            }
+        }
+
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>

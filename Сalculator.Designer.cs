@@ -873,7 +873,7 @@
         #endregion
 
         private System.Windows.Forms.TextBox equation_textBox;
-        private ZedGraph.ZedGraphControl zedGraphControl1;
+        public ZedGraph.ZedGraphControl zedGraphControl1;
         private System.Windows.Forms.Button clear_button;
         private System.Windows.Forms.Button left_shift_button;
         private System.Windows.Forms.Button right_shift_button;

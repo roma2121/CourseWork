@@ -193,6 +193,30 @@ namespace coursework
             adding_equation_text();
         }
 
+        private void minBorder_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Enter)
+            {
+                maxBorder.Focus();
+            }
+        }
+
+        private void maxBorder_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Enter)
+            {
+                button37.Focus();
+            }
+        }
+
+        private void Сalculator_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Delete)
+            {
+                clearField_button.Focus();
+            }
+        }
+
         private void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)
         {
             if (!double.TryParse(minBorder.Text.Replace(".", ","), out  Xmin))
@@ -303,7 +327,7 @@ namespace coursework
                     roots[i] = roots[i].Replace("\\ ", "");
                 }
 
-                Array.Resize(ref roots, roots.Length * (newCountRoots + 2) * quantityEquat);
+                Array.Resize(ref roots, roots.Length * (newCountRoots + 2) * quantityEquat + 1);
 
                 for (int i = 0; i < roots.Length; i++)
                 {
@@ -402,7 +426,8 @@ namespace coursework
                 sw.Stop();
                 textBox2.Text = sw.Elapsed.ToString();
 
-                painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
+                Draftsman draftsman = new Draftsman(this);
+                draftsman.painting(ref arrayPoints, ref numberPoints, ref equationY, ref arrayRoot);
 
                 toolStripProgressBar1.Value = 0;
 
@@ -457,77 +482,6 @@ namespace coursework
             }
         }
 
-        public void painting(ref List<double> arrayPoints, ref int numberPoints, ref Entity equationY, ref List<double> arrayRoot)
-        {
-            GraphPane pane = zedGraphControl1.GraphPane;
-            pane.CurveList.Clear();
-            PointPairList list1 = new PointPairList();
-            PointPairList list2 = new PointPairList();
-            pane.XAxis.Title.Text = "Ось X";
-            pane.YAxis.Title.Text = "Ось Y";
-            pane.Title.Text = "График функции";
-           
-            string equation = equationY.ToString();
-            if (equation.Contains("cotan"))
-            {
-                list1.Add(arrayPoints[0], arrayPoints[1]);
-                double y = arrayPoints[1];
-                for (int i = 2; i < arrayPoints.Count; i += 2)
-                {
-                    if (y < arrayPoints[i + 1])
-                    {
-                        y = arrayPoints[i + 1];
-                        list1.Add(PointPairBase.Missing, PointPairBase.Missing);
-                    }
-                    else
-                    {
-                        y = arrayPoints[i + 1];
-                        list1.Add(arrayPoints[i], arrayPoints[i + 1]);
-                    }
-                }
-            }
-            else if (equation.Contains("tan"))
-            {
-                list1.Add(arrayPoints[0], arrayPoints[1]);
-                double y = arrayPoints[1];
-                for (int i = 2; i < arrayPoints.Count; i += 2)
-                {
-                    if (y > arrayPoints[i + 1])
-                    {
-                        y = arrayPoints[i + 1];
-                        list1.Add(PointPairBase.Missing, PointPairBase.Missing);
-                    }
-                    else
-                    {
-                        y = arrayPoints[i + 1];
-                        list1.Add(arrayPoints[i], arrayPoints[i + 1]);
-                    }
-                }
-            }
-            else
-            {
-                //Добавляем вычисленные значения в графики
-                for (int i = 0; i < arrayPoints.Count; i += 2)
-                {
-                    list1.Add(arrayPoints[i], arrayPoints[i + 1]);
-                }
-                //добавляем корни на график
-                for (int i = 0; i < arrayRoot.Count; i += 2)
-                {
-                    list2.Add(arrayRoot[i], arrayRoot[i + 1]);
-                }
-            }
-
-            LineItem myCurve1 = pane.AddCurve($"{equationY}", list1, Color.Red, SymbolType.None);
-            LineItem myCurve2 = pane.AddCurve("", list2, Color.Blue, SymbolType.Circle);
-            myCurve2.Symbol.Fill.Type = FillType.Solid;
-            myCurve2.Symbol.Size = 4;
-            myCurve2.Line.IsVisible = false;
-
-            zedGraphControl1.AxisChange();
-            zedGraphControl1.Invalidate();
-        }
-
         private void оПрограммеToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             Information informationForm = new Information();
@@ -569,27 +523,19 @@ namespace coursework
             }
         }
 
-        private void minBorder_KeyDown(object sender, KeyEventArgs e)
+        public ErrorMessage ErrorMessage
         {
-            if (e.KeyData == Keys.Enter)
+            get => default;
+            set
             {
-                maxBorder.Focus();
             }
         }
 
-        private void maxBorder_KeyDown(object sender, KeyEventArgs e)
+        internal Draftsman Draftsman
         {
-            if (e.KeyData == Keys.Enter)
+            get => default;
+            set
             {
-                button37.Focus();
-            }
-        }
-
-        private void Сalculator_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyData == Keys.Delete)
-            {
-                clearField_button.Focus();
             }
         }
     }
