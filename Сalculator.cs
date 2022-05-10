@@ -216,14 +216,19 @@ namespace coursework
                 throw new Exception("Левая граница больше правой!");
             }
 
-            if (Math.Abs(Xmin) + Math.Abs(Xmax) > 2000)
+            if (Math.Abs(Xmin) + Math.Abs(Xmax) > 2000 && повышеннаяТочностьToolStripMenuItem.Checked == false)
             {
                 minBorder.Text = null;
                 maxBorder.Text = null;
                 throw new Exception("Диапазон значений слишком велик!");
             }
 
-            if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 200)
+            if (повышеннаяТочностьToolStripMenuItem.Checked == true)
+            {
+                accuracy = 0.01f;
+                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.01) + 1;
+            }
+            else if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 200)
             {
                 accuracy = 0.1f;
                 numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
@@ -432,17 +437,23 @@ namespace coursework
 
         private void CalculationPoint(double Xmin, ref int numberPoints, ref Entity expr, ref List<double> arrayPoints, ref float accuracy, IProgress<int> progress)
         {
-            for (int i = 0; i < numberPoints; i++)
+            try
             {
-                var subs = expr.Substitute("x", Xmin);
+                for (int i = 0; i < numberPoints; i++)
+                {
+                    var subs = expr.Substitute("x", Xmin);
 
-                arrayPoints.Add(Xmin);
-                arrayPoints.Add((double)(subs.EvalNumerical()));
+                    arrayPoints.Add(Xmin);
+                    arrayPoints.Add((double)(subs.EvalNumerical()));
 
-                Xmin = Math.Round((Xmin + accuracy), 2);
+                    Xmin = Math.Round((Xmin + accuracy), 2);
 
-                if (progress != null)
-                    progress.Report(i);
+                    if (progress != null)
+                        progress.Report(i);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -555,6 +566,30 @@ namespace coursework
                 indexText = -1;
                 equation_textBox.Text = equation_comboBox.SelectedItem.ToString();
                 equationText.Add(equation_textBox.Text);
+            }
+        }
+
+        private void minBorder_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Enter)
+            {
+                maxBorder.Focus();
+            }
+        }
+
+        private void maxBorder_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Enter)
+            {
+                button37.Focus();
+            }
+        }
+
+        private void Сalculator_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyData == Keys.Delete)
+            {
+                clearField_button.Focus();
             }
         }
     }
