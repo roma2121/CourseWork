@@ -9,6 +9,15 @@ namespace coursework
         {
             InitializeComponent();
         }
+
+        public Сalculator Сalculator
+        {
+            get => default;
+            set
+            {
+            }
+        }
+
         public string errorMessage;
         private void button1_Click(object sender, EventArgs e)
         {

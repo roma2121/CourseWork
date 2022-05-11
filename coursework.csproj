@@ -84,6 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataReader.cs" />
     <Compile Include="Draftsman.cs" />
     <Compile Include="ErrorMessage.cs">
       <SubType>Form</SubType>

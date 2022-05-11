@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -217,63 +216,6 @@ namespace coursework
             }
         }
 
-        private void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)
-        {
-            if (!double.TryParse(minBorder.Text.Replace(".", ","), out  Xmin))
-            {
-                minBorder.Text = null;
-                minBorder.Focus();
-                throw new Exception("Левая граница введена неверно!");
-            }
-
-            if (!double.TryParse(maxBorder.Text.Replace(".", ","), out Xmax))
-            {
-                maxBorder.Text = null;
-                maxBorder.Focus();
-                throw new Exception("Правая граница введена неверно!");
-            }
-
-            if (Xmin > Xmax)
-            {
-                minBorder.Text = null;
-                minBorder.Focus();
-                throw new Exception("Левая граница больше правой!");
-            }
-
-            if (Math.Abs(Xmin) + Math.Abs(Xmax) > 2000 && повышеннаяТочностьToolStripMenuItem.Checked == false)
-            {
-                minBorder.Text = null;
-                maxBorder.Text = null;
-                throw new Exception("Диапазон значений слишком велик!");
-            }
-
-            if (повышеннаяТочностьToolStripMenuItem.Checked == true)
-            {
-                accuracy = 0.01f;
-                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.01) + 1;
-            }
-            else if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 200)
-            {
-                accuracy = 0.1f;
-                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.1) + 1;
-            }
-            else if (Math.Abs(Xmin) + Math.Abs(Xmax) <= 1000)
-            {
-                accuracy = 0.5f;
-                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 0.5) + 1;
-            }
-            else
-            {
-                accuracy = 1f;
-                numberPoints = (int)Math.Ceiling((Xmax - Xmin) / 1) + 1;
-            }
-        }
-
-        private void ReadingEquation(out Entity expr)
-        {
-            expr = equation_textBox.Text;
-        }
-
         private void RootSelection(ref double Xmin, ref double Xmax, ref Entity expr, ref Entity equationY, ref List<double> arrayRoot)
         {
             //отбор корней начало
@@ -398,8 +340,9 @@ namespace coursework
                 int numberPoints;
                 float accuracy;
 
-                ReadingBoundaries(out Xmin, out Xmax, out numberPoints, out accuracy);
-                ReadingEquation(out expr);
+                DataReader datareader = new DataReader(this);
+                datareader.ReadingBoundaries(out Xmin, out Xmax, out numberPoints, out accuracy);
+                datareader.ReadingEquation(out expr);
 
                 Entity equationY = expr;
 
@@ -520,22 +463,6 @@ namespace coursework
                 indexText = -1;
                 equation_textBox.Text = equation_comboBox.SelectedItem.ToString();
                 equationText.Add(equation_textBox.Text);
-            }
-        }
-
-        public ErrorMessage ErrorMessage
-        {
-            get => default;
-            set
-            {
-            }
-        }
-
-        internal Draftsman Draftsman
-        {
-            get => default;
-            set
-            {
             }
         }
     }

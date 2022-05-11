@@ -13,6 +13,14 @@ namespace coursework
             }
         }
 
+        public static Сalculator Сalculator1
+        {
+            get => default;
+            set
+            {
+            }
+        }
+
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>

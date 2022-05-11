@@ -794,8 +794,11 @@
             // 
             // textBox2
             // 
+            this.textBox2.BackColor = System.Drawing.Color.White;
+            this.textBox2.Font = new System.Drawing.Font("Times New Roman", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.textBox2.Location = new System.Drawing.Point(349, 3);
             this.textBox2.Name = "textBox2";
+            this.textBox2.ReadOnly = true;
             this.textBox2.Size = new System.Drawing.Size(100, 20);
             this.textBox2.TabIndex = 76;
             // 
@@ -872,7 +875,7 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox equation_textBox;
+        public System.Windows.Forms.TextBox equation_textBox;
         public ZedGraph.ZedGraphControl zedGraphControl1;
         private System.Windows.Forms.Button clear_button;
         private System.Windows.Forms.Button left_shift_button;
@@ -919,8 +922,8 @@
         private System.Windows.Forms.ToolStripMenuItem сохранитьГрафикToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox minBorder;
-        private System.Windows.Forms.TextBox maxBorder;
+        public System.Windows.Forms.TextBox minBorder;
+        public System.Windows.Forms.TextBox maxBorder;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
@@ -936,6 +939,6 @@
         private System.Windows.Forms.Button clearField_button;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.ToolStripMenuItem настройкиToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem повышеннаяТочностьToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem повышеннаяТочностьToolStripMenuItem;
     }
 }
