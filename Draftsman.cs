@@ -7,8 +7,8 @@ namespace coursework
 {
     class Draftsman
     {
-        coursework.Сalculator сalculator;
-        public Draftsman(coursework.Сalculator f)
+        coursework.Interface сalculator;
+        public Draftsman(coursework.Interface f)
         {
             this.сalculator = f;
         }

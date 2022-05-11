@@ -5,26 +5,10 @@ namespace coursework
 {
     class DataReader
     {
-        coursework.Сalculator сalculator;
-        public DataReader(coursework.Сalculator f)
+        coursework.Interface сalculator;
+        public DataReader(coursework.Interface f)
         {
             this.сalculator = f;
-        }
-
-        public Сalculator Сalculator
-        {
-            get => default;
-            set
-            {
-            }
-        }
-
-        public ErrorMessage ErrorMessage
-        {
-            get => default;
-            set
-            {
-            }
         }
 
         public void ReadingBoundaries(out double Xmin, out double Xmax, out int numberPoints, out float accuracy)

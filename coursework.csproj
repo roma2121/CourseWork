@@ -92,6 +92,7 @@
     <Compile Include="ErrorMessage.Designer.cs">
       <DependentUpon>ErrorMessage.cs</DependentUpon>
     </Compile>
+    <Compile Include="Estimator.cs" />
     <Compile Include="Information.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -125,7 +126,6 @@
     <EmbeddedResource Include="Сalculator.resx">
       <DependentUpon>Сalculator.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

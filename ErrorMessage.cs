@@ -10,7 +10,7 @@ namespace coursework
             InitializeComponent();
         }
 
-        public Сalculator Сalculator
+        public Interface Сalculator
         {
             get => default;
             set
